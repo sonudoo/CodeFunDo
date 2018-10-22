@@ -187,16 +187,40 @@ rule PersonTransactionRegistryUpdateParticipant{
     action: ALLOW
 }
 
+rule PersonTransactionRegistryRaiseClaim{
+    description: "Persons can read Transaction Registry to get RaiseClaim Transaction location"
+    participant: "org.dis.model.Person"
+    operation: READ
+    resource: "org.hyperledger.composer.system.TransactionRegistry#org.dis.model.RaiseClaim"
+    action: ALLOW
+}
+
 /**
  * Persons Asset Permissions
  */
 
+
 rule PersonInsurance{
-  description: "Persons can read their own Insurances"
-  participant(p): "org.dis.model.Person"
+  description: "Persons can read all Insurances for which they have Insurance Key"
+  participant: "org.dis.model.Person"
   operation: READ
-  resource(r): "org.dis.model.Insurance"
-  condition: (r.insuranceNominees.indexOf(p.getIdentifier()) != -1)
+  resource: "org.dis.model.Insurance"
+  action: ALLOW  
+}
+
+rule PersonInsuranceMetadata{
+  description: "Persons can read all Insurances Metadata"
+  participant: "org.dis.model.Person"
+  operation: READ
+  resource: "org.dis.model.InsuranceMetadata"
+  action: ALLOW  
+}
+
+rule PersonInsuranceClaim{
+  description: "Persons can read and create all Insurances Claim"
+  participant: "org.dis.model.Person"
+  operation: READ, CREATE
+  resource: "org.dis.model.InsuranceClaim"
   action: ALLOW  
 }
 
@@ -214,7 +238,7 @@ rule PersonHistorianRecord{
  */
 
 rule PersonCompany{
-    description: "Persons can see all the Companys in the Network"
+    description: "Persons can see all the Companies in the Network"
     participant: "org.dis.model.Person"
     operation: READ
     resource: "org.dis.model.Company"
@@ -243,6 +267,14 @@ rule PersonUpdateParticipant{
     action: ALLOW
 }
 
+rule PersonRaiseClaim{
+    description: "Persons need RaiseClaim to raise claims against his/her name"
+    participant(p): "org.dis.model.Person"
+    operation: CREATE, READ
+    resource(r): "org.dis.model.RaiseClaim"
+    condition: (r.claimRaiser.getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
 /** ------------------- Person Permissions Ends ------------------------- */
 
 /** ------------------- Company Permissions Begins ------------------- */
@@ -307,6 +339,46 @@ rule CompanyTransactionRegistryCreateInsurance{
     action: ALLOW
 }
 
+rule CompanyTransactionRegistryAcceptClaim{
+    description: "Companys can read Transaction Registry to get AcceptClaim Transaction location"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.TransactionRegistry#org.dis.model.AcceptClaim"
+    action: ALLOW
+}
+
+rule CompanyTransactionRegistryRejectClaim{
+    description: "Companys can read Transaction Registry to get RejectClaim Transaction location"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.TransactionRegistry#org.dis.model.RejectClaim"
+    action: ALLOW
+}
+
+rule CompanyTransactionRegistryInvalidateInsuranceAfterExpiration{
+    description: "Companys can read Transaction Registry to get InvalidateInsuranceAfterExpiration Transaction location"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.TransactionRegistry#org.dis.model.InvalidateInsuranceAfterExpiration"
+    action: ALLOW
+}
+
+rule CompanyTransactionRegistryInvalidateInsuranceBeforeExpiration{
+    description: "Companys can read Transaction Registry to get InvalidateInsuranceBeforeExpiration Transaction location"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.TransactionRegistry#org.dis.model.InvalidateInsuranceBeforeExpiration"
+    action: ALLOW
+}
+
+rule CompanyTransactionRegistryUpdateInsuranceExpirationDate{
+    description: "Companys can read Transaction Registry to get UpdateInsuranceExpirationDate Transaction location"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.TransactionRegistry#org.dis.model.UpdateInsuranceExpirationDate"
+    action: ALLOW
+}
+
 rule CompanyTransactionRegistryUpdateParticipant{
   description: "Companys can read Transaction Registry to get UpdateParticipant Transaction location"
   participant: "org.dis.model.Company"
@@ -316,7 +388,7 @@ rule CompanyTransactionRegistryUpdateParticipant{
 }
 
 /**
- * Companys Asset Permissions. Remember Companys can read all assets. But they don't need to read the Insurance and Person key
+ * Companys Asset Permissions.
  */
 
 rule CompanyCreateHistorianRecord{
@@ -336,8 +408,8 @@ rule CompanyReadHistorianRecord{
     action: ALLOW
 }
 
-rule CompanyCreateReadInsurance{
-    description: "Companys can create Insurances on their name."
+rule CompanyInsurance{
+    description: "Companies can create and read Insurances on their name."
     participant(p): "org.dis.model.Company"
     operation: CREATE, READ
     resource(r): "org.dis.model.Insurance"
@@ -345,6 +417,21 @@ rule CompanyCreateReadInsurance{
     action: ALLOW
 }
 
+rule CompanyInsuranceMetadata{
+    description: "Companies can create, read and update Insurances"
+    participant: "org.dis.model.Company"
+    operation: CREATE, READ, UPDATE
+    resource: "org.dis.model.InsuranceMetadata"
+    action: ALLOW
+}
+
+rule CompanyInsuranceClaim{
+    description: "Companies can read and update Insurances Claims on their name. It is created by Person"
+    participant: "org.dis.model.Company"
+    operation: READ, UPDATE
+    resource: "org.dis.model.InsuranceClaim"
+    action: ALLOW
+}
 /**
  * Companys Participant Permissions
  */
@@ -384,6 +471,46 @@ rule CompanyCreateInsurance{
     operation: CREATE, READ
     resource(r): "org.dis.model.CreateInsurance"
   	condition: (r.insuranceIssuer.getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
+
+rule CompanyAcceptClaim{
+    description: "Companys need AcceptClaim Transaction to accept claims"
+    participant: "org.dis.model.Company"
+    operation: CREATE, READ
+    resource: "org.dis.model.AcceptClaim"
+    action: ALLOW
+}
+
+rule CompanyRejectClaim{
+    description: "Companys need RejectClaim Transaction to reject claims"
+    participant: "org.dis.model.Company"
+    operation: CREATE, READ
+    resource: "org.dis.model.RejectClaim"
+    action: ALLOW
+}
+
+rule CompanyInvalidateInsuranceAfterExpiration{
+    description: "Companys needs InvalidateInsuranceAfterExpiration Transaction"
+    participant: "org.dis.model.Company"
+    operation: CREATE, READ
+    resource: "org.dis.model.InvalidateInsuranceAfterExpiration"
+    action: ALLOW
+}
+
+rule CompanyInvalidateInsuranceBeforeExpiration{
+    description: "Companys needs InvalidateInsuranceBeforeExpiration Transaction"
+    participant: "org.dis.model.Company"
+    operation: CREATE, READ
+    resource: "org.dis.model.InvalidateInsuranceBeforeExpiration"
+    action: ALLOW
+}
+
+rule CompanyUpdateInsuranceExpirationDate{
+    description: "Companys needs UpdateInsuranceExpirationDate Transaction"
+    participant: "org.dis.model.Company"
+    operation: CREATE, READ
+    resource: "org.dis.model.UpdateInsuranceExpirationDate"
     action: ALLOW
 }
 

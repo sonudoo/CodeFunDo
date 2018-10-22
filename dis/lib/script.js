@@ -100,7 +100,7 @@ async function RaiseClaim(claimInsuranceData){
   let insuranceClaims = await assetRegistry3.getAll();
   
   for(let i in insuranceClaims){
-    if(insuranceClaims[i].insurance.getIdentifier() == claimInsuranceData.insuranceId){
+    if(insuranceClaims[i].insurance.getIdentifier() == claimInsuranceData.insuranceId && insuranceClaims[i].status != "2"){
       throw "The insurance has already been claimed by "+insuranceClaims[i].claimRaiser;
     }
   }
@@ -126,10 +126,22 @@ async function AcceptClaim(claimInsuranceData){
     throw "The insurance has already been acknowledged.";
   }
   
-  let assetRegistry2 = await getAssetRegistry('org.dis.model.InsuranceMetadata');
-  let insuranceMetadata = await assetRegistry2.get(insuranceClaim.insurance.getIdentifier());
+  let assetRegistryCheck = await getAssetRegistry('org.dis.model.Insurance');
+  let insurance = await assetRegistryCheck.get(insuranceClaim.insurance.getIdentifier());
+  
+  let currentParticipant = getCurrentParticipant();
+  
+  if(insurance.insuranceIssuer.getIdentifier() != currentParticipant.getIdentifier()){
+    throw "The claim cannot be accepted as it was not created by the given company.";
+  }
+
+  let assetRegistry3 = await getAssetRegistry('org.dis.model.InsuranceMetadata');
+  let insuranceMetadata = await assetRegistry3.get(insuranceClaim.insurance.getIdentifier());
+  
+  
+  
   insuranceMetadata.insuranceStatus = "3";
-  await assetRegistry2.update(insuranceMetadata);
+  await assetRegistry3.update(insuranceMetadata);
   insuranceClaim.status = "1";
   await assetRegistry1.update(insuranceClaim);
   
@@ -143,6 +155,15 @@ async function RejectClaim(claimInsuranceData){
   
   let assetRegistry1 = await getAssetRegistry('org.dis.model.InsuranceClaim');
   let insuranceClaim = await assetRegistry1.get(claimInsuranceData.claimId);
+  
+  let assetRegistryCheck = await getAssetRegistry('org.dis.model.Insurance');
+  let insurance = await assetRegistryCheck.get(insuranceClaim.insurance.getIdentifier());
+  
+  let currentParticipant = getCurrentParticipant();
+  
+  if(insurance.insuranceIssuer.getIdentifier() != currentParticipant.getIdentifier()){
+    throw "The claim cannot be rejected as it was not created by the given company.";
+  }
   
   if(insuranceClaim.status != "0"){
     throw "The insurance has already been acknowledged.";
@@ -159,6 +180,15 @@ async function RejectClaim(claimInsuranceData){
  * @transaction
  */
 async function InvalidateInsuranceAfterExpiration(invalidateInsuranceData){
+  
+  let assetRegistryCheck = await getAssetRegistry('org.dis.model.Insurance');
+  let insurance = await assetRegistryCheck.get(invalidateInsuranceData.insuranceId);
+  
+  let currentParticipant = getCurrentParticipant();
+  
+  if(insurance.insuranceIssuer.getIdentifier() != currentParticipant.getIdentifier()){
+    throw "The insurance cannot be invalidated as it was not created by the given company.";
+  }
   
   let assetRegistry = await getAssetRegistry('org.dis.model.InsuranceMetadata');
   let insuranceMetadata = await assetRegistry.get(invalidateInsuranceData.insuranceId);
@@ -184,6 +214,15 @@ async function InvalidateInsuranceAfterExpiration(invalidateInsuranceData){
  * @transaction
  */
 async function InvalidateInsuranceBeforeExpiration(invalidateInsuranceData){
+  
+  let assetRegistryCheck = await getAssetRegistry('org.dis.model.Insurance');
+  let insurance = await assetRegistryCheck.get(invalidateInsuranceData.insuranceId);
+  
+  let currentParticipant = getCurrentParticipant();
+  
+  if(insurance.insuranceIssuer.getIdentifier() != currentParticipant.getIdentifier()){
+    throw "The insurance cannot be invalidated as it was not created by the given company.";
+  }
 
   let assetRegistry = await getAssetRegistry('org.dis.model.InsuranceMetadata');
   let insuranceMetadata = await assetRegistry.get(invalidateInsuranceData.insuranceId);
@@ -209,16 +248,25 @@ async function InvalidateInsuranceBeforeExpiration(invalidateInsuranceData){
  * @transaction
  */
 async function UpdateInsuranceExpirationDate(updateInsuranceData){
+  
+  let assetRegistryCheck = await getAssetRegistry('org.dis.model.Insurance');
+  let insurance = await assetRegistryCheck.get(updateInsuranceData.insuranceId);
+  
+  let currentParticipant = getCurrentParticipant();
+  
+  if(insurance.insuranceIssuer.getIdentifier() != currentParticipant.getIdentifier()){
+    throw "The insurance cannot be updated as it was not created by the given company.";
+  }
 
   let assetRegistry = await getAssetRegistry('org.dis.model.InsuranceMetadata');
-  let insurance = await assetRegistry.get(updateInsuranceData.insuranceId);
+  let insuranceMetadata = await assetRegistry.get(updateInsuranceData.insuranceId);
   
-  let date1 = new Date(insurance.insuranceExpiry);
+  let date1 = new Date(insuranceMetadata.insuranceExpiry);
   let date2 = new Date(updateInsuranceData.insuranceExpiry);
   if(date2 < date1){
     throw "New Expiry date must be greater than existing expiry date";
   }
-  insurance.insuranceExpiry = updateInsuranceData.insuranceExpiry;
-  await assetRegistry.update(insurance);
+  insuranceMetadata.insuranceExpiry = updateInsuranceData.insuranceExpiry;
+  await assetRegistry.update(insuranceMetadata);
   
 }

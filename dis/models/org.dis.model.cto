@@ -1,0 +1,79 @@
+/**
+ * Decentralized Insurance System
+ */
+
+namespace org.dis.model
+
+asset Insurance identified by insuranceId{
+  o String insuranceId                           // Same as the transaction Id which creates it.
+  o String insuranceDate                        // The date and time when insurance was created.
+  o String insuranceData                       // The content of the insurance. This is where all the claims are written and encrypted. Once written, it cannot be modified.
+  o String[] insuranceKey                    // The same key encrypted with public key of each nominee.
+  --> Person[] insuranceNominees            // Those persons who can see and raise a claim.
+  --> Company insuranceIssuer              // The company which issued the insurance.
+  --> InsuranceMetadata insuranceMetadata // The metadata for an insurance is modifiable by the company.
+}
+
+/**
+ * Each insurance can have 4 status:
+ * 0 -> Valid
+ * 1 -> Expired
+ * 2 -> Invalidated as the premium was not paid
+ * 3 -> Claimed
+ */
+
+asset InsuranceMetadata identified by insuranceId{
+  // The metadata contains expiration date and status of the insurance. It is modifiable by the company
+  o String insuranceId
+  o String insuranceExpiry
+  o String insuranceStatus
+}
+
+participant Company identified by companyId{
+  o String companyId
+  o String companyName
+  o String companyDescription
+  o String companyPublicKey
+}
+
+participant Person identified by personId{
+  o String personId
+  o String personData // Person data is encrypted by person key
+  o String personKey // Person key is encrypted with public key of person. The private key is stored on a off chain database.
+  o String personPublicKey
+}
+
+transaction CreateInsurance{
+  o String insuranceData
+  o String[] insuranceKey
+  o String insuranceExpiry
+  --> Company insuranceIssuer
+  --> Person[] insuranceNominees
+}
+
+transaction ClaimInsurance{
+  // Changes the status of an insurance to 3
+  o String insuranceId
+}
+
+transaction InvalidateInsuranceAfterExpiration{
+  // Changes the status of an insurance to 1
+  o String insuranceId
+}
+
+transaction InvalidateInsuranceBeforeExpiration{
+  // Changes the status of an insurance to 2
+  o String insuranceId
+}
+
+transaction UpdateInsuranceExpirationDate{
+  // Changes the expiration date of an insurance
+  o String insuranceId
+  o String insuranceExpiry
+}
+
+transaction RaiseClaim{
+  // Raises a claim for an insurance which needs to be acknowledged by the Company
+  o String insuranceId
+  --> Person claimRaiser
+}

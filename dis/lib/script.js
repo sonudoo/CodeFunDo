@@ -70,17 +70,89 @@ async function CreateInsurance(createInsuranceData){
 
 
 /**
- * @param {org.dis.model.ClaimInsurance} claimInsuranceData
+ * @param {org.dis.model.RaiseClaim} claimInsuranceData
  * @transaction
  */
-async function ClaimInsurance(claimInsuranceData){
+async function RaiseClaim(claimInsuranceData){
+	
+  let serializer = getSerializer();
+  let assetRegistry1 = await getAssetRegistry('org.dis.model.Insurance');
+  let insurance = await assetRegistry1.get(claimInsuranceData.insuranceId);
+  let assetRegistry2 = await getAssetRegistry('org.dis.model.InsuranceMetadata');
+  let insuranceMetadata = await assetRegistry2.get(claimInsuranceData.insuranceId);
+  
+  let found = false;
+  for(let i in insurance.insuranceNominees){
+    if(insurance.insuranceNominees[i].getIdentifier() == claimInsuranceData.claimRaiser.getIdentifier()){
+      found = true;
+      break;
+  	}
+  }
+  
+  if(found == false){
+    throw "Failed to raise claim. The person is not a nominee of the claim";
+  }
+  
+  if(insuranceMetadata.insuranceStatus != "0"){
+    throw "The insurance is invalid. It cannot be claimed";
+  }
+  let assetRegistry3 = await getAssetRegistry('org.dis.model.InsuranceClaim');
+  let insuranceClaims = await assetRegistry3.getAll();
+  
+  for(let i in insuranceClaims){
+    if(insuranceClaims[i].insurance.getIdentifier() == claimInsuranceData.insuranceId){
+      throw "The insurance has already been claimed by "+insuranceClaims[i].claimRaiser;
+    }
+  }
+  const factory = getFactory();
+  
+  let insuranceClaim = factory.newResource('org.dis.model','InsuranceClaim', claimInsuranceData.transactionId);
+  insuranceClaim.insurance = factory.newRelationship('org.dis.model','Insurance',claimInsuranceData.insuranceId);
+  insuranceClaim.status = "0";
+  insuranceClaim.claimRaiser = claimInsuranceData.claimRaiser;
+  await assetRegistry3.add(insuranceClaim);
+}
 
-  let assetRegistry = await getAssetRegistry('org.dis.model.InsuranceMetadata');
-  let insurance = await assetRegistry.get(claimInsuranceData.insuranceId);
-  insurance.status = "3";
-  await assetRegistry.update(insurance);
+/**
+ * @param {org.dis.model.AcceptClaim} claimInsuranceData
+ * @transaction
+ */
+async function AcceptClaim(claimInsuranceData){
+	
+  let assetRegistry1 = await getAssetRegistry('org.dis.model.InsuranceClaim');
+  let insuranceClaim = await assetRegistry1.get(claimInsuranceData.claimId);
+  
+  if(insuranceClaim.status != "0"){
+    throw "The insurance has already been acknowledged.";
+  }
+  
+  let assetRegistry2 = await getAssetRegistry('org.dis.model.InsuranceMetadata');
+  let insuranceMetadata = await assetRegistry2.get(insuranceClaim.insurance.getIdentifier());
+  insuranceMetadata.insuranceStatus = "3";
+  await assetRegistry2.update(insuranceMetadata);
+  insuranceClaim.status = "1";
+  await assetRegistry1.update(insuranceClaim);
   
 }
+
+/**
+ * @param {org.dis.model.RejectClaim} claimInsuranceData
+ * @transaction
+ */
+async function RejectClaim(claimInsuranceData){
+  
+  let assetRegistry1 = await getAssetRegistry('org.dis.model.InsuranceClaim');
+  let insuranceClaim = await assetRegistry1.get(claimInsuranceData.claimId);
+  
+  if(insuranceClaim.status != "0"){
+    throw "The insurance has already been acknowledged.";
+  }
+  
+  insuranceClaim.status = "2";
+  await assetRegistry1.update(insuranceClaim);
+  
+}
+
 
 /**
  * @param {org.dis.model.InvalidateInsuranceAfterExpiration} invalidateInsuranceData
@@ -89,17 +161,21 @@ async function ClaimInsurance(claimInsuranceData){
 async function InvalidateInsuranceAfterExpiration(invalidateInsuranceData){
   
   let assetRegistry = await getAssetRegistry('org.dis.model.InsuranceMetadata');
-  let insurance = await assetRegistry.get(invalidateInsuranceData.insuranceId);
+  let insuranceMetadata = await assetRegistry.get(invalidateInsuranceData.insuranceId);
   
-  let date1 = new Date(insurance.insuranceExpiry);
+  if(insuranceMetadata.insuranceStatus != "0"){
+  	throw "The insurance is invalid/expired.";  
+  }
+  
+  let date1 = new Date(insuranceMetadata.insuranceExpiry);
   let date2 = new Date();
   
   if(date1 > date2){
     throw "The insurance has not expired yet.";
   }
   
-  insurance.status = "1";
-  await assetRegistry.update(insurance);
+  insuranceMetadata.insuranceStatus = "1";
+  await assetRegistry.update(insuranceMetadata);
   
 }
 
@@ -110,9 +186,21 @@ async function InvalidateInsuranceAfterExpiration(invalidateInsuranceData){
 async function InvalidateInsuranceBeforeExpiration(invalidateInsuranceData){
 
   let assetRegistry = await getAssetRegistry('org.dis.model.InsuranceMetadata');
-  let insurance = await assetRegistry.get(invalidateInsuranceData.insuranceId);
-  insurance.status = "2";
-  await assetRegistry.update(insurance);
+  let insuranceMetadata = await assetRegistry.get(invalidateInsuranceData.insuranceId);
+  
+  if(insuranceMetadata.insuranceStatus != "0"){
+  	throw "The insurance is invalid/expired.";  
+  }
+  
+  let date1 = new Date(insuranceMetadata.insuranceExpiry);
+  let date2 = new Date();
+  
+  if(date1 < date2){
+    throw "The insurance has expired. It can no longer be invalidated.";
+  }
+  
+  insuranceMetadata.insuranceStatus = "2";
+  await assetRegistry.update(insuranceMetadata);
   
 }
 

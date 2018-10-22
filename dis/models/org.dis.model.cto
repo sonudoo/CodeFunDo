@@ -29,6 +29,22 @@ asset InsuranceMetadata identified by insuranceId{
   o String insuranceStatus
 }
 
+/**
+ * Each insurance can have 4 status:
+ * 0 -> New Claim
+ * 1 -> Claim Acknowledged
+ * 2 -> Claim Rejected
+ */
+
+
+asset InsuranceClaim identified by claimId{
+  // This document is created whenever an insurance claim is raised
+  o String claimId
+  --> Insurance insurance
+  --> Person claimRaiser
+  o String status
+}
+
 participant Company identified by companyId{
   o String companyId
   o String companyName
@@ -51,9 +67,13 @@ transaction CreateInsurance{
   --> Person[] insuranceNominees
 }
 
-transaction ClaimInsurance{
+transaction AcceptClaim{
   // Changes the status of an insurance to 3
-  o String insuranceId
+  o String claimId
+}
+
+transaction RejectClaim{
+  o String claimId
 }
 
 transaction InvalidateInsuranceAfterExpiration{

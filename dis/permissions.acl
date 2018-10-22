@@ -1,0 +1,399 @@
+/**
+ * Common rule for all Participants
+ */
+rule NetworkAccess{
+    description: "All participants have permission to read Network Assets to enable them to enter the Network"
+    participant: "ANY"
+    operation: READ
+    resource: "org.hyperledger.composer.system.Network"
+    action: ALLOW
+}
+
+/** -------------- Network Admin Permissions Begins ----------------------- */
+
+/**
+ * Network Admins Registry Permissions
+ */
+
+
+rule NetworkAdminAssetRegistryHistorianRecord{
+    description: "Network Admins can read the Asset Registry to get HistorianRecord Asset Records"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: READ
+    resource: "org.hyperledger.composer.system.AssetRegistry#org.hyperledger.composer.system.HistorianRecord"
+    action: ALLOW
+}
+
+rule NetworkAdminAssetRegistryIdentity{
+    description: "Network Admins can read the Asset Registry to get Identity Asset Records"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: READ
+    resource: "org.hyperledger.composer.system.AssetRegistry#org.hyperledger.composer.system.Identity"
+    action: ALLOW
+}
+
+rule NetworkAdminParticipantRegistryPerson{
+    description: "Network Admins can read the Participant Registry to get Person Particiant Records"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: READ
+    resource: "org.hyperledger.composer.system.ParticipantRegistry#org.dis.model.Person"
+    action: ALLOW
+}
+
+rule NetworkAdminParticipantRegistryCompany{
+    description: "Network Admins can read the Participant Registry to get Company Participant Records"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: READ
+    resource: "org.hyperledger.composer.system.ParticipantRegistry#org.dis.model.Company"
+    action: ALLOW
+}
+
+rule NetworkAdminTransactionRegistryAddParticipant{
+    description: "Network Admins can read Transaction Registry to get AddParticipant Transaction location"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: READ
+    resource: "org.hyperledger.composer.system.TransactionRegistry#org.hyperledger.composer.system.AddParticipant"
+    action: ALLOW
+}
+
+rule NetworkAdminTransactionRegistryIssueIdentity{
+    description: "Network Admins can read Transaction Registry to get IssueIdentity Transaction location"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: READ
+    resource: "org.hyperledger.composer.system.TransactionRegistry#org.hyperledger.composer.system.IssueIdentity"
+    action: ALLOW
+}
+
+/**
+ * Network Admins Asset Permissions
+ */
+
+rule NetworkAdminHistorianRecord{
+    description: "Network Admins can access Historian Record to create transactions and access the transactions created by them only"
+    participant(p): "org.hyperledger.composer.system.NetworkAdmin"
+    operation: CREATE, READ
+    resource(r): "org.hyperledger.composer.system.HistorianRecord"
+    condition: (r.participantInvoking.getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
+
+rule NetworkAdminIdentity{
+    description: "Network Admins can create and read Identities"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: CREATE, READ
+    resource: "org.hyperledger.composer.system.Identity"
+    action: ALLOW
+}
+
+/**
+ * Network Admins Participants Permissions
+ */
+rule NetworkAdminCompany{
+    description: "Network Admins can create and read Company"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: CREATE, READ
+    resource: "org.dis.model.Company"
+    action: ALLOW
+}
+
+rule NetworkAdminPerson{
+    description: "Network Admins can create Person and read them in order to issue them identities"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: CREATE, READ
+    resource: "org.dis.model.Person"
+    action: ALLOW
+}
+
+/**
+ * Network Admins Transaction Permissions
+ */
+
+rule NetworkAdminAddParticipant{
+    description: "Network Admins need AddParticipant Transaction to add new Particiapnts and access those transaction records"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: CREATE, READ
+    resource: "org.hyperledger.composer.system.AddParticipant"
+    action: ALLOW
+}
+
+rule NetworkAdminIssueIdentity{
+    description: "Network Admins can access IssueIdentity Transaction issue new Identities"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: CREATE, READ
+    resource: "org.hyperledger.composer.system.IssueIdentity"
+    action: ALLOW
+}
+/** -------------- Network Admin Permissions Ends ------------------------- */
+
+/** -------------- Person Permissions Begins ---------------------------- */
+
+/**
+ * Person Registry Permissions
+ */
+
+rule PersonAssetRegistryInsurance{
+    description: "Person can read the Asset Registry to get Insurance Asset Records"
+    participant: "org.dis.model.Person"
+    operation: READ
+    resource: "org.hyperledger.composer.system.AssetRegistry#org.dis.model.Insurance"
+    action: ALLOW
+}
+
+rule PersonAssetRegistryInsuranceMetadata{
+    description: "Person can read the Asset Registry to get Insurance Metadata Asset Records"
+    participant: "org.dis.model.Person"
+    operation: READ
+    resource: "org.hyperledger.composer.system.AssetRegistry#org.dis.model.InsuranceMetadata"
+    action: ALLOW
+}
+
+rule PersonAssetRegistryInsuranceClaim{
+    description: "Person can read the Asset Registry to get Insurance Metadata Asset Records"
+    participant: "org.dis.model.Person"
+    operation: READ
+    resource: "org.hyperledger.composer.system.AssetRegistry#org.dis.model.InsuranceClaim"
+    action: ALLOW
+}
+
+rule PersonAssetRegistryHistorianRecord{
+    description: "Persons can read the Asset Registry to get HistorianRecord Asset Records"
+    participant: "org.dis.model.Person"
+    operation: READ
+    resource: "org.hyperledger.composer.system.AssetRegistry#org.hyperledger.composer.system.HistorianRecord"
+    action: ALLOW
+}
+
+rule PersonParticipantRegistryCompany{
+    description: "Persons can read the Participant Registry to get Company Participant Records"
+    participant: "org.dis.model.Person"
+    operation: READ
+    resource: "org.hyperledger.composer.system.ParticipantRegistry#org.dis.model.Company"
+    action: ALLOW
+}
+
+rule PersonParticipantRegistryPerson{
+    description: "Persons can read the Participant Registry to get Person Participant Records"
+    participant: "org.dis.model.Person"
+    operation: READ
+    resource: "org.hyperledger.composer.system.ParticipantRegistry#org.dis.model.Person"
+    action: ALLOW
+}
+
+rule PersonTransactionRegistryUpdateParticipant{
+    description: "Persons can read Transaction Registry to get UpdateParticipant Transaction location"
+    participant: "org.dis.model.Person"
+    operation: READ
+    resource: "org.hyperledger.composer.system.TransactionRegistry#org.hyperledger.composer.system.UpdateParticipant"
+    action: ALLOW
+}
+
+/**
+ * Persons Asset Permissions
+ */
+
+rule PersonInsurance{
+  description: "Persons can read their own Insurances"
+  participant(p): "org.dis.model.Person"
+  operation: READ
+  resource(r): "org.dis.model.Insurance"
+  condition: (r.insuranceNominees.indexOf(p.getIdentifier()) != -1)
+  action: ALLOW  
+}
+
+rule PersonHistorianRecord{
+    description: "Persons can read Historian Record to create transactions and view transactions created by them"
+    participant(p): "org.dis.model.Person"
+    operation: CREATE, READ
+    resource(r): "org.hyperledger.composer.system.HistorianRecord"
+    condition: (r.participantInvoking.getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
+
+/**
+ * Persons Participant Permissions
+ */
+
+rule PersonCompany{
+    description: "Persons can see all the Companys in the Network"
+    participant: "org.dis.model.Person"
+    operation: READ
+    resource: "org.dis.model.Company"
+    action: ALLOW
+}
+
+rule PersonPerson{
+    description: "Persons can read and update themselves only"
+    participant(p): "org.dis.model.Person"
+    operation: READ, UPDATE
+    resource(r): "org.dis.model.Person"
+    condition: (r.getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
+
+/**
+ * Persons Transaction Permissions
+ */
+
+rule PersonUpdateParticipant{
+    description: "Persons need UpdateParticipant Transaction to update themselves"
+    participant(p): "org.dis.model.Person"
+    operation: CREATE, READ
+    resource(r): "org.hyperledger.composer.system.UpdateParticipant"
+    condition: (r.resources.length == 1 && r.resources[0].getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
+
+/** ------------------- Person Permissions Ends ------------------------- */
+
+/** ------------------- Company Permissions Begins ------------------- */
+
+/**
+ * Companys Registry Permissions
+ */
+
+rule CompanyAssetRegistryInsurance{
+    description: "Companys can read the Asset Registry to get Insurance Asset Records"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.AssetRegistry#org.dis.model.Insurance"
+    action: ALLOW
+}
+
+rule CompanyAssetRegistryInsuranceMetadata{
+    description: "Companys can read the Asset Registry to get Insurance Metadata Asset Records"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.AssetRegistry#org.dis.model.InsuranceMetadata"
+    action: ALLOW
+}
+
+rule CompanyAssetRegistryInsuranceClaim{
+    description: "Companys can read the Asset Registry to get Insurance Claim Asset Records"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.AssetRegistry#org.dis.model.InsuranceClaim"
+    action: ALLOW
+}
+
+rule CompanyAssetRegistryHistorianRecord{
+    description: "Companys can read the Asset Registry to get Historian Record Asset Records"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.AssetRegistry#org.hyperledger.composer.system.HistorianRecord"
+    action: ALLOW
+}
+
+rule CompanyParticipantRegistryCompany{
+    description: "Companys can read the Participant Registry to get Companys Participant Records"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.ParticipantRegistry#org.dis.model.Company"
+    action: ALLOW
+}
+
+rule CompanyParticipantRegistryPerson{
+    description: "Companys can read the Participant Registry to get Persons Participant Records"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.ParticipantRegistry#org.dis.model.Person"
+    action: ALLOW
+}
+
+rule CompanyTransactionRegistryCreateInsurance{
+    description: "Companys can read Transaction Registry to get CreateInsurance Transaction location"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.TransactionRegistry#org.dis.model.CreateInsurance"
+    action: ALLOW
+}
+
+rule CompanyTransactionRegistryUpdateParticipant{
+  description: "Companys can read Transaction Registry to get UpdateParticipant Transaction location"
+  participant: "org.dis.model.Company"
+  operation: READ
+  resource: "org.hyperledger.composer.system.TransactionRegistry#org.hyperledger.composer.system.UpdateParticipant"
+  action: ALLOW  
+}
+
+/**
+ * Companys Asset Permissions. Remember Companys can read all assets. But they don't need to read the Insurance and Person key
+ */
+
+rule CompanyCreateHistorianRecord{
+    description: "Companys can create Historian Records for Insurance created by them only"
+    participant(p): "org.dis.model.Company"
+    operation: CREATE
+    resource(r): "org.hyperledger.composer.system.HistorianRecord"
+    condition: (r.participantInvoking.getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
+
+rule CompanyReadHistorianRecord{
+    description: "Companys can read all Historian Records."
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.hyperledger.composer.system.HistorianRecord"
+    action: ALLOW
+}
+
+rule CompanyCreateReadInsurance{
+    description: "Companys can create Insurances on their name."
+    participant(p): "org.dis.model.Company"
+    operation: CREATE, READ
+    resource(r): "org.dis.model.Insurance"
+    condition: (r.insuranceIssuer.getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
+
+/**
+ * Companys Participant Permissions
+ */
+
+rule CompanyReadCompany{
+    description: "Companys can see other Companys"
+    participant: "org.dis.model.Company"
+    operation: READ
+    resource: "org.dis.model.Company"
+    action: ALLOW
+}
+
+rule CompanyUpdateCompany{
+    description: "Companys can only update themselves"
+    participant(p): "org.dis.model.Company"
+    operation: UPDATE
+    resource(r): "org.dis.model.Company"
+    condition: (r.getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
+
+rule CompanyPerson{
+  description: "Companys can read all Persons"
+  participant: "org.dis.model.Company"
+  operation: READ
+  resource: "org.dis.model.Person"
+  action: ALLOW  
+}
+
+/**
+ * Companys Transaction Permissions
+ */
+
+rule CompanyCreateInsurance{
+    description: "Companys need CreateInsurance Transaction to create Insurances"
+    participant(p): "org.dis.model.Company"
+    operation: CREATE, READ
+    resource(r): "org.dis.model.CreateInsurance"
+  	condition: (r.insuranceIssuer.getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
+
+rule CompanyUpdateParticipant{
+  description: "Companys need UpdateParticipant Transaction to update themselves"
+  participant(p): "org.dis.model.Company"
+  operation: CREATE, READ
+  resource(r): "org.hyperledger.composer.system.UpdateParticipant"
+  condition: (r.resources.length == 1 && r.resources[0].getIdentifier() == p.getIdentifier())
+  action: ALLOW  
+}
+
+/** ------------------- Company Permissions Ends -------------------- */

@@ -1,6 +1,6 @@
 # CodeFunDo
 
-Please use the PDF file 'Idea.pdf' to get a detailed insight.
+This project is a submission for CodeFunDo, a hackathon organized by Microsoft Corporation. The problem statement was to come up with solutions to predict/mitigate the occurence of a natural disaster. Please use the PDF file 'Idea.pdf' to get a detailed insight.
 
 ## Disclaimer
 
